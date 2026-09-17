@@ -362,6 +362,136 @@ class GlobalSolver:
                 ]
             )
 
+        elif category == "ctf-ai-ml":
+            candidates.extend(
+                [
+                    {
+                        "name": "Model Weight Manipulation",
+                        "confidence": 45,
+                        "reason": (
+                            "Perturbation des poids du modèle."
+                        ),
+                    },
+                    {
+                        "name": "Adversarial Example Generation",
+                        "confidence": 40,
+                        "reason": (
+                            "Génération d'exemples adverses "
+                            "pour tester la robustesse."
+                        ),
+                    },
+                    {
+                        "name": "Prompt Injection",
+                        "confidence": 35,
+                        "reason": (
+                            "Injection de prompts dans les LLM."
+                        ),
+                    },
+                ]
+            )
+
+        elif category == "ctf-osint":
+            candidates.extend(
+                [
+                    {
+                        "name": "Social Media Enumeration",
+                        "confidence": 45,
+                        "reason": (
+                            "Collecte d'informations depuis "
+                            "les réseaux sociaux."
+                        ),
+                    },
+                    {
+                        "name": "Geolocation Analysis",
+                        "confidence": 40,
+                        "reason": (
+                            "Détermination géographique "
+                            "à partir d'indices."
+                        ),
+                    },
+                    {
+                        "name": "Username Metadata Mining",
+                        "confidence": 35,
+                        "reason": (
+                            "Minage de métadonnées depuis "
+                            "les noms d'utilisateur."
+                        ),
+                    },
+                ]
+            )
+
+        elif category == "ctf-malware":
+            candidates.extend(
+                [
+                    {
+                        "name": "C2 Traffic Analysis",
+                        "confidence": 45,
+                        "reason": (
+                            "Analyse du trafic command-and-control."
+                        ),
+                    },
+                    {
+                        "name": "Dynamic Analysis",
+                        "confidence": 40,
+                        "reason": (
+                            "Analyse dynamique du malware "
+                            "via strace/ltrace."
+                        ),
+                    },
+                    {
+                        "name": "YARA Rules Generation",
+                        "confidence": 35,
+                        "reason": (
+                            "Création de règles YARA pour "
+                            "la détection."
+                        ),
+                    },
+                ]
+            )
+
+        elif category == "ctf-writeup":
+            candidates.extend(
+                [
+                    {
+                        "name": "Writeup Generation",
+                        "confidence": 50,
+                        "reason": (
+                            "Génération de writeup structuré "
+                            "avec métadonnées."
+                        ),
+                    },
+                    {
+                        "name": "Solution Steps Documentation",
+                        "confidence": 45,
+                        "reason": (
+                            "Documentation des étapes de "
+                            "solution."
+                        ),
+                    },
+                ]
+            )
+
+        elif category == "solve-challenge":
+            candidates.extend(
+                [
+                    {
+                        "name": "Challenge Analysis",
+                        "confidence": 50,
+                        "reason": (
+                            "Analyse et décomposition du "
+                            "challenge."
+                        ),
+                    },
+                    {
+                        "name": "Skill Delegation",
+                        "confidence": 45,
+                        "reason": (
+                            "Délégation aux skills category."
+                        ),
+                    },
+                ]
+            )
+
         else:
             candidates.extend(
                 [

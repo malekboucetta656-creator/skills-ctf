@@ -55,6 +55,36 @@ MODULES = {
         "agent.detector",
         "agent.hypothesis",
     ],
+
+    "ctf-ai-ml": [
+        "agent.scanner",
+        "agent.detector",
+        "agent.hypothesis",
+    ],
+
+    "ctf-osint": [
+        "agent.scanner",
+        "agent.detector",
+        "agent.hypothesis",
+    ],
+
+    "ctf-malware": [
+        "agent.scanner",
+        "agent.detector",
+        "agent.hypothesis",
+    ],
+
+    "ctf-writeup": [
+        "agent.scanner",
+        "agent.detector",
+        "agent.hypothesis",
+    ],
+
+    "solve-challenge": [
+        "agent.scanner",
+        "agent.detector",
+        "agent.hypothesis",
+    ],
 }
 
 

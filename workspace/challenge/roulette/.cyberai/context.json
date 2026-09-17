@@ -14,7 +14,9 @@
     "forensics": 0,
     "misc": 0
   },
-  "sources": [],
+  "sources": [
+    "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+  ],
   "filters": [],
   "storage": [],
   "sinks": [],
@@ -25,6 +27,21 @@
   "navigation": [],
   "data_flow": [],
   "hypotheses": [
+    {
+      "name": "Controlled Address Write",
+      "confidence": 90,
+      "reason": "Source appears to permit a user-controlled memory write."
+    },
+    {
+      "name": "Reach Win Function",
+      "confidence": 80,
+      "reason": "A dedicated victory function was detected."
+    },
+    {
+      "name": "Flag File",
+      "confidence": 75,
+      "reason": "The program directly references /flag."
+    },
     {
       "name": "Binary Vulnerability Analysis",
       "confidence": 50,
@@ -43,16 +60,65 @@
   ],
   "experiments": [
     {
-      "id": "pwn-runtime-001",
-      "hypothesis": "PWN runtime exploitation",
-      "confidence": 100,
-      "status": "ERROR",
-      "runtime": {
-        "status": "ERROR",
-        "reason": "Impossible d'importer PwnRuntimeEngine",
-        "error": "cannot import name 'PwnRuntimeEngine' from 'agent.pwn_runtime' (/home/kali/CyberAI/agent/pwn_runtime.py)"
-      },
-      "flags": []
+      "id": "flag_strings_chal",
+      "hypothesis": "Flag present in binary",
+      "category": "pwn",
+      "type": "flag_strings",
+      "status": "INCONCLUSIVE",
+      "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+      "observations": [
+        "No flag pattern in strings"
+      ],
+      "flag_found": null,
+      "validated": false,
+      "stdout": "/lib/ld-linux-aarch64.so.1\nfgets\nstdin\nputs\nexit\nsetbuf\n__isoc23_scanf\nfopen\ntime\ngetchar\nstdout\n__libc_start_main\nstderr\nsrand\n__cxa_finalize\nfclose\nprintf\nabort\nlibc.so.6\nGLIBC_2.38\nGLIBC_2.34\nGLIBC_2.17\n_ITM_deregisterTMCloneTable\n__gmon_start__\n_ITM_registerTMCloneTable\n`BB9@\n/flag\n> welcome to ONLINE ROULETTE\n>  - gamble as much as you want!\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\n>  - enter `0` to quit the game\n[!] minibolt has breached the system\n[addr]> \nintruder neutralised\n[value]> \n[!] we now return you to your regularly scheduled gambling\nwager> \ninvalid wager\n> congrats! you won!!!\n> better luck next time!\ndamn no more money\n> thx for the money\nhow long would you like your name to be?\n%hhu\nbad number, get out\nplease leave your name as you leave\nwhaaaaaa u r the goat\nGCC: (Debian 15.2.0-17) 15.2.0\n?====?B=\n\t/L=Y\n.!YY\n2=Y!\n2/\"==\nprintf\n__off_t\n_IO_read_ptr\n_chain\nuintptr_t\n_shortbuf\n__uint8_t\n_IO_buf_base\nlong long unsigned int\naddr\ngame\nlong long int\n_fileno\n_IO_read_end\n_flags\n_IO_buf_end\n_cur_column\n_IO_codecvt\n_old_offset\nvalue\n_IO_marker\n_short_backupbuf\n_freeres_buf\n_IO_write_ptr\nname\nshort unsigned int\n_IO_save_base\nstdin\n_lock\n_flags2\n_mode\nfgets\nstdout\nputs\nflush\nname_length\n_IO_write_end\n_prevchain\n_IO_lock_t\n_IO_FILE\ntime\nstderr\nsetbuf\n__uint64_t\nfopen\n_markers\nfile\nsrand\nlotto\nunsigned char\nshort int\n_IO_wide_data\nflag\n_vtable_offset\nexit\nGNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables\nwager\nfclose\nbalance\n__off64_t\n_IO_read_base\n_IO_save_end\ngetchar\n__time_t\n_unused2\n_unused3\n_IO_backup_base\n_freeres_list\n__isoc23_scanf\nmain\n_IO_write_base\n_total_written\nchal.c\n/home/kali/CyberAI/workspace/challenge/roulette\n/usr/include/aarch64-linux-gnu/bits\n/usr/include\n/usr/include/aarch64-linux-gnu/bits/types\ntypes.h\nstdint-uintn.h\nstdint.h\nstruct_FILE.h\nstdio.h\ntime_t.h\nstdlib.h\ntime.h\naeabi_feature_and_bits\nScrt1.o\n__abi_tag\ncrti.o\ncall_w"
+    },
+    {
+      "id": "run_inputs_chal",
+      "hypothesis": "Reach Win Function / Memory Corruption",
+      "category": "pwn",
+      "type": "run_inputs",
+      "status": "INCONCLUSIVE",
+      "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+      "observations": [
+        "Crash detected with input length 5",
+        "Crash detected with input length 81",
+        "Crash detected with input length 201",
+        "Crash detected with input length 9",
+        "Crash observed but no flag recovered"
+      ],
+      "flag_found": null,
+      "validated": false,
+      "runs": [
+        {
+          "input_len": 5,
+          "returncode": -11,
+          "crashed": true,
+          "stdout": "how long would you like your name to be?\n\n> welcome to ONLINE ROULETTE\n>  - gamble as much as you want!\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\n>  - enter `0` to quit the game\n\n[!] minibolt has breached the system\n[addr]> [value]> ",
+          "stderr": ""
+        },
+        {
+          "input_len": 81,
+          "returncode": -11,
+          "crashed": true,
+          "stdout": "how long would you like your name to be?\n\n> welcome to ONLINE ROULETTE\n>  - gamble as much as you want!\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\n>  - enter `0` to quit the game\n\n[!] minibolt has breached the system\n[addr]> [value]> ",
+          "stderr": ""
+        },
+        {
+          "input_len": 201,
+          "returncode": -11,
+          "crashed": true,
+          "stdout": "how long would you like your name to be?\n\n> welcome to ONLINE ROULETTE\n>  - gamble as much as you want!\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\n>  - enter `0` to quit the game\n\n[!] minibolt has breached the system\n[addr]> [value]> ",
+          "stderr": ""
+        },
+        {
+          "input_len": 9,
+          "returncode": -11,
+          "crashed": true,
+          "stdout": "how long would you like your name to be?\n\n> welcome to ONLINE ROULETTE\n>  - gamble as much as you want!\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\n>  - enter `0` to quit the game\n\n[!] minibolt has breached the system\n[addr]> [value]> ",
+          "stderr": ""
+        }
+      ]
     }
   ],
   "exploits": [],
@@ -64,42 +130,6 @@
       "entrypoint": "analyze",
       "result": {
         "scanner": [
-          {
-            "file": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c",
-            "type": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text",
-            "strings": [
-              "#include <stdint.h>",
-              "#include <stdio.h>",
-              "#include <stdlib.h>",
-              "#include <time.h>",
-              "#ifdef ENABLE_SNAPSHOT",
-              "#define SNAPSHOT() asm volatile(\"int3\")",
-              "#else",
-              "#define SNAPSHOT() ((void)0)",
-              "#endif",
-              "void flush() {",
-              "    int c;",
-              "    while ((c = getchar()) != '\\n' && c != EOF) {",
-              "    };",
-              "void win() {",
-              "    FILE *file = fopen(\"/flag\", \"r\");",
-              "    char flag[256];",
-              "    fgets(flag, 256, file);",
-              "    puts(flag);",
-              "    fclose(file);",
-              "void game(int *balance) {",
-              "    int wager;",
-              "    puts(\"> welcome to ONLINE ROULETTE\");",
-              "    puts(\">  - gamble as much as you want!\");",
-              "    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");",
-              "    puts(\">  - enter `0` to quit the game\");",
-              "    puts(\"\");",
-              "    // something to help you",
-              "    puts(\"[!] minibolt has breached the system\");",
-              "    SNAPSHOT();",
-              "    unsigned long addr;"
-            ]
-          },
           {
             "file": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
             "type": "/home/kali/CyberAI/workspace/challenge/roulette/chal: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=ca7ac853d5fe6e2e32b0eb46074fbbaf1a8bee17, for GNU/Linux 3.7.0, with debug_info, not stripped",
@@ -137,21 +167,60 @@
             ]
           },
           {
+            "file": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c",
+            "type": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text",
+            "strings": [
+              "#include <stdint.h>",
+              "#include <stdio.h>",
+              "#include <stdlib.h>",
+              "#include <time.h>",
+              "#ifdef ENABLE_SNAPSHOT",
+              "#define SNAPSHOT() asm volatile(\"int3\")",
+              "#else",
+              "#define SNAPSHOT() ((void)0)",
+              "#endif",
+              "void flush() {",
+              "    int c;",
+              "    while ((c = getchar()) != '\\n' && c != EOF) {",
+              "    };",
+              "void win() {",
+              "    FILE *file = fopen(\"/flag\", \"r\");",
+              "    char flag[256];",
+              "    fgets(flag, 256, file);",
+              "    puts(flag);",
+              "    fclose(file);",
+              "void game(int *balance) {",
+              "    int wager;",
+              "    puts(\"> welcome to ONLINE ROULETTE\");",
+              "    puts(\">  - gamble as much as you want!\");",
+              "    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");",
+              "    puts(\">  - enter `0` to quit the game\");",
+              "    puts(\"\");",
+              "    // something to help you",
+              "    puts(\"[!] minibolt has breached the system\");",
+              "    SNAPSHOT();",
+              "    unsigned long addr;"
+            ]
+          },
+          {
             "file": "/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json",
             "type": "/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json: JSON text data",
             "strings": [
               "\"challenge\": \"/home/kali/CyberAI/workspace/challenge/roulette\",",
               "  \"category\": \"pwn\",",
               "  \"files\": [",
+              "    \"/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json\",",
+              "    \"/home/kali/CyberAI/workspace/challenge/roulette/chal\",",
               "    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"",
               "  \"scores\": {",
-              "    \"web\": 0,",
+              "    \"web\": 2,",
               "    \"pwn\": 4,",
               "    \"reverse\": 0,",
               "    \"crypto\": 0,",
               "    \"forensics\": 0,",
               "    \"misc\": 0",
-              "  \"sources\": [],",
+              "  \"sources\": [",
+              "    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"",
               "  \"filters\": [],",
               "  \"storage\": [],",
               "  \"sinks\": [],",
@@ -163,13 +232,10 @@
               "  \"data_flow\": [],",
               "  \"hypotheses\": [",
               "    {",
-              "      \"name\": \"Binary Vulnerability Analysis\",",
-              "      \"confidence\": 50,",
-              "      \"reason\": \"Analyse g",
-              "rique du binaire et des primitives d'exploitation.\"",
-              "    },",
-              "    {",
-              "      \"name\": \"Memory Corruption\","
+              "      \"name\": \"Controlled Address Write\",",
+              "      \"confidence\": 90,",
+              "      \"reason\": \"Source appears to permit a user-controlled memory write.\"",
+              "    },"
             ]
           }
         ],
@@ -230,6 +296,146 @@
         "navigation": [],
         "hypotheses": [],
         "overall_score": 0
+      }
+    },
+    "agent.pwn_engine": {
+      "status": "EXECUTED",
+      "module": "agent.pwn_engine",
+      "entrypoint": "analyze",
+      "result": {
+        "engine": "PwnEngine",
+        "version": "1.0",
+        "status": "ANALYZED",
+        "files": [
+          "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+          "/home/kali/CyberAI/workspace/challenge/roulette/chal.c",
+          "/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json"
+        ],
+        "binaries": [
+          "/home/kali/CyberAI/workspace/challenge/roulette/chal"
+        ],
+        "sources": [
+          "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+        ],
+        "protections": {},
+        "symbols": [
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "address": "0000000000000be0",
+            "type": "T",
+            "name": "win"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "address": "0000000000000c2c",
+            "type": "T",
+            "name": "game"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "address": "0000000000000e2c",
+            "type": "T",
+            "name": "main"
+          }
+        ],
+        "strings": [
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "/flag"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "> congrats! you won!!!"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "_flags"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "_flags2"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "flag"
+          },
+          {
+            "binary": "/home/kali/CyberAI/workspace/challenge/roulette/chal",
+            "value": "GNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables"
+          }
+        ],
+        "primitives": [
+          {
+            "type": "dangerous_function",
+            "name": "scanf",
+            "count": 5,
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "dangerous_function",
+            "name": "printf",
+            "count": 5,
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "byte_write",
+            "count": 1,
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "pointer_write",
+            "count": 1,
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "controlled_address_write_candidate",
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          }
+        ],
+        "targets": [
+          {
+            "type": "integer_condition",
+            "variable": "balance",
+            "threshold": "999999999",
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "win_function",
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          },
+          {
+            "type": "flag_file",
+            "path": "/flag",
+            "source": "/home/kali/CyberAI/workspace/challenge/roulette/chal.c"
+          }
+        ],
+        "hypotheses": [
+          {
+            "name": "Controlled Address Write",
+            "type": "ARBITRARY_WRITE",
+            "confidence": 90,
+            "status": "UNVALIDATED",
+            "reason": "Source appears to permit a user-controlled memory write."
+          },
+          {
+            "name": "Reach Win Function",
+            "type": "WIN_FUNCTION",
+            "confidence": 80,
+            "status": "UNVALIDATED",
+            "reason": "A dedicated victory function was detected."
+          },
+          {
+            "name": "Flag File",
+            "type": "FLAG_FILE",
+            "confidence": 75,
+            "status": "UNVALIDATED",
+            "reason": "The program directly references /flag."
+          }
+        ],
+        "observations": [
+          "checksec unavailable"
+        ],
+        "errors": []
       }
     }
   },
@@ -312,7 +518,8 @@
     "selected_modules": [
       "agent.scanner",
       "agent.detector",
-      "agent.hypothesis"
+      "agent.hypothesis",
+      "agent.pwn_engine"
     ],
     "engine": "CyberAI Global Solver",
     "engine_version": "V4",
@@ -321,7 +528,7 @@
     "solver_history": [
       {
         "event": "SOLVER_START",
-        "timestamp": 1789231444.2694209,
+        "timestamp": 1789627973.6719315,
         "data": {
           "category": "pwn",
           "files": 3
@@ -329,21 +536,21 @@
       },
       {
         "event": "ROUND_START",
-        "timestamp": 1789231444.2696126,
+        "timestamp": 1789627973.6719432,
         "data": {
           "round": 1
         }
       },
       {
         "event": "PRIORITIZATION",
-        "timestamp": 1789231444.2711194,
+        "timestamp": 1789627973.6720183,
         "data": {
-          "count": 3
+          "count": 6
         }
       },
       {
         "event": "ROUND_END",
-        "timestamp": 1789231444.2711265,
+        "timestamp": 1789627973.6720202,
         "data": {
           "round": 1,
           "flags": 0,
@@ -352,13 +559,31 @@
       },
       {
         "event": "SOLVER_END",
-        "timestamp": 1789231444.2711313,
+        "timestamp": 1789627973.6720214,
         "data": {
           "status": "IN_PROGRESS"
         }
       }
     ],
     "prioritized_hypotheses": [
+      {
+        "name": "Controlled Address Write",
+        "confidence": 90,
+        "reason": "Source appears to permit a user-controlled memory write.",
+        "solver_score": 92.0
+      },
+      {
+        "name": "Reach Win Function",
+        "confidence": 80,
+        "reason": "A dedicated victory function was detected.",
+        "solver_score": 80.0
+      },
+      {
+        "name": "Flag File",
+        "confidence": 75,
+        "reason": "The program directly references /flag.",
+        "solver_score": 75.0
+      },
       {
         "name": "Binary Vulnerability Analysis",
         "confidence": 50,
@@ -380,20 +605,8 @@
     ],
     "solver_status": "IN_PROGRESS",
     "global_solver": {
-      "result": "ChallengeContext(challenge='/home/kali/CyberAI/workspace/challenge/roulette', files=['/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', '/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], category='pwn', scores={'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, sources=[], filters=[], storage=[], sinks=[], bot=[], triggers=[], client=[], dom=[], navigation=[], data_flow=[], hypotheses=[{'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\"}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.'}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.'}], experiments=[], exploits=[], flags=[], module_results={'agent.scanner': {'status': 'EXECUTED', 'module': 'agent.scanner', 'entrypoint': 'analyze', 'result': {'scanner': [{'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text', 'strings': ['#include <stdint.h>', '#include <stdio.h>', '#include <stdlib.h>', '#include <time.h>', '#ifdef ENABLE_SNAPSHOT', '#define SNAPSHOT() asm volatile(\"int3\")', '#else', '#define SNAPSHOT() ((void)0)', '#endif', 'void flush() {', '    int c;', \"    while ((c = getchar()) != '\\\\n' && c != EOF) {\", '    };', 'void win() {', '    FILE *file = fopen(\"/flag\", \"r\");', '    char flag[256];', '    fgets(flag, 256, file);', '    puts(flag);', '    fclose(file);', 'void game(int *balance) {', '    int wager;', '    puts(\"> welcome to ONLINE ROULETTE\");', '    puts(\">  - gamble as much as you want!\");', '    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");', '    puts(\">  - enter `0` to quit the game\");', '    puts(\"\");', '    // something to help you', '    puts(\"[!] minibolt has breached the system\");', '    SNAPSHOT();', '    unsigned long addr;']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=ca7ac853d5fe6e2e32b0eb46074fbbaf1a8bee17, for GNU/Linux 3.7.0, with debug_info, not stripped', 'strings': ['/lib/ld-linux-aarch64.so.1', 'fgets', 'stdin', 'setbuf', '__isoc23_scanf', 'fopen', 'getchar', 'stdout', '__libc_start_main', 'stderr', 'srand', '__cxa_finalize', 'fclose', 'printf', 'abort', 'libc.so.6', 'GLIBC_2.38', 'GLIBC_2.34', 'GLIBC_2.17', '_ITM_deregisterTMCloneTable', '__gmon_start__', '_ITM_registerTMCloneTable', '`BB9@', '/flag', '> welcome to ONLINE ROULETTE', '>  - gamble as much as you want!', '>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)', '>  - enter `0` to quit the game', '[!] minibolt has breached the system', '[addr]> ']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json: JSON text data', 'strings': ['\"challenge\": \"/home/kali/CyberAI/workspace/challenge/roulette\",', '  \"category\": \"pwn\",', '  \"files\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"scores\": {', '    \"web\": 0,', '    \"pwn\": 4,', '    \"reverse\": 0,', '    \"crypto\": 0,', '    \"forensics\": 0,', '    \"misc\": 0', '  \"sources\": [],', '  \"filters\": [],', '  \"storage\": [],', '  \"sinks\": [],', '  \"bot\": [],', '  \"triggers\": [],', '  \"client\": [],', '  \"dom\": [],', '  \"navigation\": [],', '  \"data_flow\": [],', '  \"hypotheses\": [', '    {', '      \"name\": \"Binary Vulnerability Analysis\",', '      \"confidence\": 50,', '      \"reason\": \"Analyse g', 'rique du binaire et des primitives d\\'exploitation.\"', '    },', '    {', '      \"name\": \"Memory Corruption\",']}], 'files_scanned': 3, 'challenge': '/home/kali/CyberAI/workspace/challenge/roulette'}}, 'agent.detector': {'status': 'EXECUTED', 'module': 'agent.detector', 'entrypoint': 'analyze', 'result': {'sources': [], 'sinks': [], 'bot': [], 'hypotheses': [], 'detector': {'findings': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}], 'categories': {'routes': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}]}, 'dangerous_sinks': 0, 'user_inputs': 0, 'xss_indicators': 0, 'bot_indicators': 0, 'routes': 1, 'score': 0, 'hypotheses': []}}}, 'agent.hypothesis': {'status': 'EXECUTED', 'module': 'agent.hypothesis', 'entrypoint': 'analyze', 'result': {'sources': [], 'filters': [], 'storage': [], 'sinks': [], 'bot': [], 'client': [], 'dom': [], 'navigation': [], 'hypotheses': [], 'overall_score': 0}}}, errors=[], metadata={'classification': {'category': 'pwn', 'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'raw': {'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'primary': 'pwn'}}, 'selected_modules': ['agent.scanner', 'agent.detector', 'agent.hypothesis'], 'engine': 'CyberAI Global Solver', 'engine_version': 'V4', 'autonomous': True, 'validation_required': True, 'solver_history': [{'event': 'SOLVER_START', 'timestamp': 1789231444.2694209, 'data': {'category': 'pwn', 'files': 3}}, {'event': 'ROUND_START', 'timestamp': 1789231444.2696126, 'data': {'round': 1}}, {'event': 'PRIORITIZATION', 'timestamp': 1789231444.2711194, 'data': {'count': 3}}, {'event': 'ROUND_END', 'timestamp': 1789231444.2711265, 'data': {'round': 1, 'flags': 0, 'experiments': 0}}, {'event': 'SOLVER_END', 'timestamp': 1789231444.2711313, 'data': {'status': 'IN_PROGRESS'}}], 'prioritized_hypotheses': [{'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\", 'solver_score': 50.0}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.', 'solver_score': 40.0}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.', 'solver_score': 35.0}], 'solver_status': 'IN_PROGRESS', 'global_solver': {'result': ...}, 'solver_result': ...})"
+      "result": "ChallengeContext(challenge='/home/kali/CyberAI/workspace/challenge/roulette', files=['/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', '/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], category='pwn', scores={'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, sources=['/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], filters=[], storage=[], sinks=[], bot=[], triggers=[], client=[], dom=[], navigation=[], data_flow=[], hypotheses=[{'name': 'Controlled Address Write', 'confidence': 90, 'reason': 'Source appears to permit a user-controlled memory write.'}, {'name': 'Reach Win Function', 'confidence': 80, 'reason': 'A dedicated victory function was detected.'}, {'name': 'Flag File', 'confidence': 75, 'reason': 'The program directly references /flag.'}, {'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\"}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.'}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.'}], experiments=[{'id': 'flag_strings_chal', 'hypothesis': 'Flag present in binary', 'category': 'pwn', 'type': 'flag_strings', 'status': 'INCONCLUSIVE', 'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'observations': ['No flag pattern in strings'], 'flag_found': None, 'validated': False, 'stdout': '/lib/ld-linux-aarch64.so.1\\nfgets\\nstdin\\nputs\\nexit\\nsetbuf\\n__isoc23_scanf\\nfopen\\ntime\\ngetchar\\nstdout\\n__libc_start_main\\nstderr\\nsrand\\n__cxa_finalize\\nfclose\\nprintf\\nabort\\nlibc.so.6\\nGLIBC_2.38\\nGLIBC_2.34\\nGLIBC_2.17\\n_ITM_deregisterTMCloneTable\\n__gmon_start__\\n_ITM_registerTMCloneTable\\n`BB9@\\n/flag\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n[!] minibolt has breached the system\\n[addr]> \\nintruder neutralised\\n[value]> \\n[!] we now return you to your regularly scheduled gambling\\nwager> \\ninvalid wager\\n> congrats! you won!!!\\n> better luck next time!\\ndamn no more money\\n> thx for the money\\nhow long would you like your name to be?\\n%hhu\\nbad number, get out\\nplease leave your name as you leave\\nwhaaaaaa u r the goat\\nGCC: (Debian 15.2.0-17) 15.2.0\\n?====?B=\\n\\t/L=Y\\n.!YY\\n2=Y!\\n2/\"==\\nprintf\\n__off_t\\n_IO_read_ptr\\n_chain\\nuintptr_t\\n_shortbuf\\n__uint8_t\\n_IO_buf_base\\nlong long unsigned int\\naddr\\ngame\\nlong long int\\n_fileno\\n_IO_read_end\\n_flags\\n_IO_buf_end\\n_cur_column\\n_IO_codecvt\\n_old_offset\\nvalue\\n_IO_marker\\n_short_backupbuf\\n_freeres_buf\\n_IO_write_ptr\\nname\\nshort unsigned int\\n_IO_save_base\\nstdin\\n_lock\\n_flags2\\n_mode\\nfgets\\nstdout\\nputs\\nflush\\nname_length\\n_IO_write_end\\n_prevchain\\n_IO_lock_t\\n_IO_FILE\\ntime\\nstderr\\nsetbuf\\n__uint64_t\\nfopen\\n_markers\\nfile\\nsrand\\nlotto\\nunsigned char\\nshort int\\n_IO_wide_data\\nflag\\n_vtable_offset\\nexit\\nGNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables\\nwager\\nfclose\\nbalance\\n__off64_t\\n_IO_read_base\\n_IO_save_end\\ngetchar\\n__time_t\\n_unused2\\n_unused3\\n_IO_backup_base\\n_freeres_list\\n__isoc23_scanf\\nmain\\n_IO_write_base\\n_total_written\\nchal.c\\n/home/kali/CyberAI/workspace/challenge/roulette\\n/usr/include/aarch64-linux-gnu/bits\\n/usr/include\\n/usr/include/aarch64-linux-gnu/bits/types\\ntypes.h\\nstdint-uintn.h\\nstdint.h\\nstruct_FILE.h\\nstdio.h\\ntime_t.h\\nstdlib.h\\ntime.h\\naeabi_feature_and_bits\\nScrt1.o\\n__abi_tag\\ncrti.o\\ncall_w'}, {'id': 'run_inputs_chal', 'hypothesis': 'Reach Win Function / Memory Corruption', 'category': 'pwn', 'type': 'run_inputs', 'status': 'INCONCLUSIVE', 'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'observations': ['Crash detected with input length 5', 'Crash detected with input length 81', 'Crash detected with input length 201', 'Crash detected with input length 9', 'Crash observed but no flag recovered'], 'flag_found': None, 'validated': False, 'runs': [{'input_len': 5, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 81, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 201, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 9, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}]}], exploits=[], flags=[], module_results={'agent.scanner': {'status': 'EXECUTED', 'module': 'agent.scanner', 'entrypoint': 'analyze', 'result': {'scanner': [{'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=ca7ac853d5fe6e2e32b0eb46074fbbaf1a8bee17, for GNU/Linux 3.7.0, with debug_info, not stripped', 'strings': ['/lib/ld-linux-aarch64.so.1', 'fgets', 'stdin', 'setbuf', '__isoc23_scanf', 'fopen', 'getchar', 'stdout', '__libc_start_main', 'stderr', 'srand', '__cxa_finalize', 'fclose', 'printf', 'abort', 'libc.so.6', 'GLIBC_2.38', 'GLIBC_2.34', 'GLIBC_2.17', '_ITM_deregisterTMCloneTable', '__gmon_start__', '_ITM_registerTMCloneTable', '`BB9@', '/flag', '> welcome to ONLINE ROULETTE', '>  - gamble as much as you want!', '>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)', '>  - enter `0` to quit the game', '[!] minibolt has breached the system', '[addr]> ']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text', 'strings': ['#include <stdint.h>', '#include <stdio.h>', '#include <stdlib.h>', '#include <time.h>', '#ifdef ENABLE_SNAPSHOT', '#define SNAPSHOT() asm volatile(\"int3\")', '#else', '#define SNAPSHOT() ((void)0)', '#endif', 'void flush() {', '    int c;', \"    while ((c = getchar()) != '\\\\n' && c != EOF) {\", '    };', 'void win() {', '    FILE *file = fopen(\"/flag\", \"r\");', '    char flag[256];', '    fgets(flag, 256, file);', '    puts(flag);', '    fclose(file);', 'void game(int *balance) {', '    int wager;', '    puts(\"> welcome to ONLINE ROULETTE\");', '    puts(\">  - gamble as much as you want!\");', '    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");', '    puts(\">  - enter `0` to quit the game\");', '    puts(\"\");', '    // something to help you', '    puts(\"[!] minibolt has breached the system\");', '    SNAPSHOT();', '    unsigned long addr;']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json: JSON text data', 'strings': ['\"challenge\": \"/home/kali/CyberAI/workspace/challenge/roulette\",', '  \"category\": \"pwn\",', '  \"files\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json\",', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal\",', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"scores\": {', '    \"web\": 2,', '    \"pwn\": 4,', '    \"reverse\": 0,', '    \"crypto\": 0,', '    \"forensics\": 0,', '    \"misc\": 0', '  \"sources\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"filters\": [],', '  \"storage\": [],', '  \"sinks\": [],', '  \"bot\": [],', '  \"triggers\": [],', '  \"client\": [],', '  \"dom\": [],', '  \"navigation\": [],', '  \"data_flow\": [],', '  \"hypotheses\": [', '    {', '      \"name\": \"Controlled Address Write\",', '      \"confidence\": 90,', '      \"reason\": \"Source appears to permit a user-controlled memory write.\"', '    },']}], 'files_scanned': 3, 'challenge': '/home/kali/CyberAI/workspace/challenge/roulette'}}, 'agent.detector': {'status': 'EXECUTED', 'module': 'agent.detector', 'entrypoint': 'analyze', 'result': {'sources': [], 'sinks': [], 'bot': [], 'hypotheses': [], 'detector': {'findings': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}], 'categories': {'routes': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}]}, 'dangerous_sinks': 0, 'user_inputs': 0, 'xss_indicators': 0, 'bot_indicators': 0, 'routes': 1, 'score': 0, 'hypotheses': []}}}, 'agent.hypothesis': {'status': 'EXECUTED', 'module': 'agent.hypothesis', 'entrypoint': 'analyze', 'result': {'sources': [], 'filters': [], 'storage': [], 'sinks': [], 'bot': [], 'client': [], 'dom': [], 'navigation': [], 'hypotheses': [], 'overall_score': 0}}, 'agent.pwn_engine': {'status': 'EXECUTED', 'module': 'agent.pwn_engine', 'entrypoint': 'analyze', 'result': {'engine': 'PwnEngine', 'version': '1.0', 'status': 'ANALYZED', 'files': ['/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json'], 'binaries': ['/home/kali/CyberAI/workspace/challenge/roulette/chal'], 'sources': ['/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], 'protections': {}, 'symbols': [{'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000be0', 'type': 'T', 'name': 'win'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000c2c', 'type': 'T', 'name': 'game'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000e2c', 'type': 'T', 'name': 'main'}], 'strings': [{'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '/flag'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '> congrats! you won!!!'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '_flags'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '_flags2'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': 'flag'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': 'GNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables'}], 'primitives': [{'type': 'dangerous_function', 'name': 'scanf', 'count': 5, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'dangerous_function', 'name': 'printf', 'count': 5, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'byte_write', 'count': 1, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'pointer_write', 'count': 1, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'controlled_address_write_candidate', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}], 'targets': [{'type': 'integer_condition', 'variable': 'balance', 'threshold': '999999999', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'win_function', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'flag_file', 'path': '/flag', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}], 'hypotheses': [{'name': 'Controlled Address Write', 'type': 'ARBITRARY_WRITE', 'confidence': 90, 'status': 'UNVALIDATED', 'reason': 'Source appears to permit a user-controlled memory write.'}, {'name': 'Reach Win Function', 'type': 'WIN_FUNCTION', 'confidence': 80, 'status': 'UNVALIDATED', 'reason': 'A dedicated victory function was detected.'}, {'name': 'Flag File', 'type': 'FLAG_FILE', 'confidence': 75, 'status': 'UNVALIDATED', 'reason': 'The program directly references /flag.'}], 'observations': ['checksec unavailable'], 'errors': []}}}, errors=[], metadata={'classification': {'category': 'pwn', 'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'raw': {'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'primary': 'pwn'}}, 'selected_modules': ['agent.scanner', 'agent.detector', 'agent.hypothesis', 'agent.pwn_engine'], 'engine': 'CyberAI Global Solver', 'engine_version': 'V4', 'autonomous': True, 'validation_required': True, 'solver_history': [{'event': 'SOLVER_START', 'timestamp': 1789627973.6719315, 'data': {'category': 'pwn', 'files': 3}}, {'event': 'ROUND_START', 'timestamp': 1789627973.6719432, 'data': {'round': 1}}, {'event': 'PRIORITIZATION', 'timestamp': 1789627973.6720183, 'data': {'count': 6}}, {'event': 'ROUND_END', 'timestamp': 1789627973.6720202, 'data': {'round': 1, 'flags': 0, 'experiments': 0}}, {'event': 'SOLVER_END', 'timestamp': 1789627973.6720214, 'data': {'status': 'IN_PROGRESS'}}], 'prioritized_hypotheses': [{'name': 'Controlled Address Write', 'confidence': 90, 'reason': 'Source appears to permit a user-controlled memory write.', 'solver_score': 92.0}, {'name': 'Reach Win Function', 'confidence': 80, 'reason': 'A dedicated victory function was detected.', 'solver_score': 80.0}, {'name': 'Flag File', 'confidence': 75, 'reason': 'The program directly references /flag.', 'solver_score': 75.0}, {'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\", 'solver_score': 50.0}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.', 'solver_score': 40.0}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.', 'solver_score': 35.0}], 'solver_status': 'IN_PROGRESS', 'global_solver': {'result': ...}, 'solver_result': ...})"
     },
-    "solver_result": "ChallengeContext(challenge='/home/kali/CyberAI/workspace/challenge/roulette', files=['/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', '/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], category='pwn', scores={'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, sources=[], filters=[], storage=[], sinks=[], bot=[], triggers=[], client=[], dom=[], navigation=[], data_flow=[], hypotheses=[{'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\"}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.'}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.'}], experiments=[], exploits=[], flags=[], module_results={'agent.scanner': {'status': 'EXECUTED', 'module': 'agent.scanner', 'entrypoint': 'analyze', 'result': {'scanner': [{'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text', 'strings': ['#include <stdint.h>', '#include <stdio.h>', '#include <stdlib.h>', '#include <time.h>', '#ifdef ENABLE_SNAPSHOT', '#define SNAPSHOT() asm volatile(\"int3\")', '#else', '#define SNAPSHOT() ((void)0)', '#endif', 'void flush() {', '    int c;', \"    while ((c = getchar()) != '\\\\n' && c != EOF) {\", '    };', 'void win() {', '    FILE *file = fopen(\"/flag\", \"r\");', '    char flag[256];', '    fgets(flag, 256, file);', '    puts(flag);', '    fclose(file);', 'void game(int *balance) {', '    int wager;', '    puts(\"> welcome to ONLINE ROULETTE\");', '    puts(\">  - gamble as much as you want!\");', '    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");', '    puts(\">  - enter `0` to quit the game\");', '    puts(\"\");', '    // something to help you', '    puts(\"[!] minibolt has breached the system\");', '    SNAPSHOT();', '    unsigned long addr;']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=ca7ac853d5fe6e2e32b0eb46074fbbaf1a8bee17, for GNU/Linux 3.7.0, with debug_info, not stripped', 'strings': ['/lib/ld-linux-aarch64.so.1', 'fgets', 'stdin', 'setbuf', '__isoc23_scanf', 'fopen', 'getchar', 'stdout', '__libc_start_main', 'stderr', 'srand', '__cxa_finalize', 'fclose', 'printf', 'abort', 'libc.so.6', 'GLIBC_2.38', 'GLIBC_2.34', 'GLIBC_2.17', '_ITM_deregisterTMCloneTable', '__gmon_start__', '_ITM_registerTMCloneTable', '`BB9@', '/flag', '> welcome to ONLINE ROULETTE', '>  - gamble as much as you want!', '>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)', '>  - enter `0` to quit the game', '[!] minibolt has breached the system', '[addr]> ']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json: JSON text data', 'strings': ['\"challenge\": \"/home/kali/CyberAI/workspace/challenge/roulette\",', '  \"category\": \"pwn\",', '  \"files\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"scores\": {', '    \"web\": 0,', '    \"pwn\": 4,', '    \"reverse\": 0,', '    \"crypto\": 0,', '    \"forensics\": 0,', '    \"misc\": 0', '  \"sources\": [],', '  \"filters\": [],', '  \"storage\": [],', '  \"sinks\": [],', '  \"bot\": [],', '  \"triggers\": [],', '  \"client\": [],', '  \"dom\": [],', '  \"navigation\": [],', '  \"data_flow\": [],', '  \"hypotheses\": [', '    {', '      \"name\": \"Binary Vulnerability Analysis\",', '      \"confidence\": 50,', '      \"reason\": \"Analyse g', 'rique du binaire et des primitives d\\'exploitation.\"', '    },', '    {', '      \"name\": \"Memory Corruption\",']}], 'files_scanned': 3, 'challenge': '/home/kali/CyberAI/workspace/challenge/roulette'}}, 'agent.detector': {'status': 'EXECUTED', 'module': 'agent.detector', 'entrypoint': 'analyze', 'result': {'sources': [], 'sinks': [], 'bot': [], 'hypotheses': [], 'detector': {'findings': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}], 'categories': {'routes': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}]}, 'dangerous_sinks': 0, 'user_inputs': 0, 'xss_indicators': 0, 'bot_indicators': 0, 'routes': 1, 'score': 0, 'hypotheses': []}}}, 'agent.hypothesis': {'status': 'EXECUTED', 'module': 'agent.hypothesis', 'entrypoint': 'analyze', 'result': {'sources': [], 'filters': [], 'storage': [], 'sinks': [], 'bot': [], 'client': [], 'dom': [], 'navigation': [], 'hypotheses': [], 'overall_score': 0}}}, errors=[], metadata={'classification': {'category': 'pwn', 'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'raw': {'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'primary': 'pwn'}}, 'selected_modules': ['agent.scanner', 'agent.detector', 'agent.hypothesis'], 'engine': 'CyberAI Global Solver', 'engine_version': 'V4', 'autonomous': True, 'validation_required': True, 'solver_history': [{'event': 'SOLVER_START', 'timestamp': 1789231444.2694209, 'data': {'category': 'pwn', 'files': 3}}, {'event': 'ROUND_START', 'timestamp': 1789231444.2696126, 'data': {'round': 1}}, {'event': 'PRIORITIZATION', 'timestamp': 1789231444.2711194, 'data': {'count': 3}}, {'event': 'ROUND_END', 'timestamp': 1789231444.2711265, 'data': {'round': 1, 'flags': 0, 'experiments': 0}}, {'event': 'SOLVER_END', 'timestamp': 1789231444.2711313, 'data': {'status': 'IN_PROGRESS'}}], 'prioritized_hypotheses': [{'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\", 'solver_score': 50.0}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.', 'solver_score': 40.0}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.', 'solver_score': 35.0}], 'solver_status': 'IN_PROGRESS', 'global_solver': {'result': ...}, 'solver_result': ...})",
-    "experiment_executor": {
-      "version": "V3",
-      "status": "COMPLETED",
-      "category": "pwn",
-      "experiments": 1,
-      "flags": 0
-    },
-    "runtime_state": {
-      "executed": true,
-      "category": "pwn",
-      "validation_required": true
-    }
+    "solver_result": "ChallengeContext(challenge='/home/kali/CyberAI/workspace/challenge/roulette', files=['/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', '/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], category='pwn', scores={'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, sources=['/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], filters=[], storage=[], sinks=[], bot=[], triggers=[], client=[], dom=[], navigation=[], data_flow=[], hypotheses=[{'name': 'Controlled Address Write', 'confidence': 90, 'reason': 'Source appears to permit a user-controlled memory write.'}, {'name': 'Reach Win Function', 'confidence': 80, 'reason': 'A dedicated victory function was detected.'}, {'name': 'Flag File', 'confidence': 75, 'reason': 'The program directly references /flag.'}, {'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\"}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.'}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.'}], experiments=[{'id': 'flag_strings_chal', 'hypothesis': 'Flag present in binary', 'category': 'pwn', 'type': 'flag_strings', 'status': 'INCONCLUSIVE', 'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'observations': ['No flag pattern in strings'], 'flag_found': None, 'validated': False, 'stdout': '/lib/ld-linux-aarch64.so.1\\nfgets\\nstdin\\nputs\\nexit\\nsetbuf\\n__isoc23_scanf\\nfopen\\ntime\\ngetchar\\nstdout\\n__libc_start_main\\nstderr\\nsrand\\n__cxa_finalize\\nfclose\\nprintf\\nabort\\nlibc.so.6\\nGLIBC_2.38\\nGLIBC_2.34\\nGLIBC_2.17\\n_ITM_deregisterTMCloneTable\\n__gmon_start__\\n_ITM_registerTMCloneTable\\n`BB9@\\n/flag\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n[!] minibolt has breached the system\\n[addr]> \\nintruder neutralised\\n[value]> \\n[!] we now return you to your regularly scheduled gambling\\nwager> \\ninvalid wager\\n> congrats! you won!!!\\n> better luck next time!\\ndamn no more money\\n> thx for the money\\nhow long would you like your name to be?\\n%hhu\\nbad number, get out\\nplease leave your name as you leave\\nwhaaaaaa u r the goat\\nGCC: (Debian 15.2.0-17) 15.2.0\\n?====?B=\\n\\t/L=Y\\n.!YY\\n2=Y!\\n2/\"==\\nprintf\\n__off_t\\n_IO_read_ptr\\n_chain\\nuintptr_t\\n_shortbuf\\n__uint8_t\\n_IO_buf_base\\nlong long unsigned int\\naddr\\ngame\\nlong long int\\n_fileno\\n_IO_read_end\\n_flags\\n_IO_buf_end\\n_cur_column\\n_IO_codecvt\\n_old_offset\\nvalue\\n_IO_marker\\n_short_backupbuf\\n_freeres_buf\\n_IO_write_ptr\\nname\\nshort unsigned int\\n_IO_save_base\\nstdin\\n_lock\\n_flags2\\n_mode\\nfgets\\nstdout\\nputs\\nflush\\nname_length\\n_IO_write_end\\n_prevchain\\n_IO_lock_t\\n_IO_FILE\\ntime\\nstderr\\nsetbuf\\n__uint64_t\\nfopen\\n_markers\\nfile\\nsrand\\nlotto\\nunsigned char\\nshort int\\n_IO_wide_data\\nflag\\n_vtable_offset\\nexit\\nGNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables\\nwager\\nfclose\\nbalance\\n__off64_t\\n_IO_read_base\\n_IO_save_end\\ngetchar\\n__time_t\\n_unused2\\n_unused3\\n_IO_backup_base\\n_freeres_list\\n__isoc23_scanf\\nmain\\n_IO_write_base\\n_total_written\\nchal.c\\n/home/kali/CyberAI/workspace/challenge/roulette\\n/usr/include/aarch64-linux-gnu/bits\\n/usr/include\\n/usr/include/aarch64-linux-gnu/bits/types\\ntypes.h\\nstdint-uintn.h\\nstdint.h\\nstruct_FILE.h\\nstdio.h\\ntime_t.h\\nstdlib.h\\ntime.h\\naeabi_feature_and_bits\\nScrt1.o\\n__abi_tag\\ncrti.o\\ncall_w'}, {'id': 'run_inputs_chal', 'hypothesis': 'Reach Win Function / Memory Corruption', 'category': 'pwn', 'type': 'run_inputs', 'status': 'INCONCLUSIVE', 'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'observations': ['Crash detected with input length 5', 'Crash detected with input length 81', 'Crash detected with input length 201', 'Crash detected with input length 9', 'Crash observed but no flag recovered'], 'flag_found': None, 'validated': False, 'runs': [{'input_len': 5, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 81, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 201, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}, {'input_len': 9, 'returncode': -11, 'crashed': True, 'stdout': 'how long would you like your name to be?\\n\\n> welcome to ONLINE ROULETTE\\n>  - gamble as much as you want!\\n>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\\n>  - enter `0` to quit the game\\n\\n[!] minibolt has breached the system\\n[addr]> [value]> ', 'stderr': ''}]}], exploits=[], flags=[], module_results={'agent.scanner': {'status': 'EXECUTED', 'module': 'agent.scanner', 'entrypoint': 'analyze', 'result': {'scanner': [{'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=ca7ac853d5fe6e2e32b0eb46074fbbaf1a8bee17, for GNU/Linux 3.7.0, with debug_info, not stripped', 'strings': ['/lib/ld-linux-aarch64.so.1', 'fgets', 'stdin', 'setbuf', '__isoc23_scanf', 'fopen', 'getchar', 'stdout', '__libc_start_main', 'stderr', 'srand', '__cxa_finalize', 'fclose', 'printf', 'abort', 'libc.so.6', 'GLIBC_2.38', 'GLIBC_2.34', 'GLIBC_2.17', '_ITM_deregisterTMCloneTable', '__gmon_start__', '_ITM_registerTMCloneTable', '`BB9@', '/flag', '> welcome to ONLINE ROULETTE', '>  - gamble as much as you want!', '>  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)', '>  - enter `0` to quit the game', '[!] minibolt has breached the system', '[addr]> ']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c: C source, ASCII text', 'strings': ['#include <stdint.h>', '#include <stdio.h>', '#include <stdlib.h>', '#include <time.h>', '#ifdef ENABLE_SNAPSHOT', '#define SNAPSHOT() asm volatile(\"int3\")', '#else', '#define SNAPSHOT() ((void)0)', '#endif', 'void flush() {', '    int c;', \"    while ((c = getchar()) != '\\\\n' && c != EOF) {\", '    };', 'void win() {', '    FILE *file = fopen(\"/flag\", \"r\");', '    char flag[256];', '    fgets(flag, 256, file);', '    puts(flag);', '    fclose(file);', 'void game(int *balance) {', '    int wager;', '    puts(\"> welcome to ONLINE ROULETTE\");', '    puts(\">  - gamble as much as you want!\");', '    puts(\">  - you have a 1-in-36 chance to double your wager! (tiny house edge so we can maintain infra costs)\");', '    puts(\">  - enter `0` to quit the game\");', '    puts(\"\");', '    // something to help you', '    puts(\"[!] minibolt has breached the system\");', '    SNAPSHOT();', '    unsigned long addr;']}, {'file': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json', 'type': '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json: JSON text data', 'strings': ['\"challenge\": \"/home/kali/CyberAI/workspace/challenge/roulette\",', '  \"category\": \"pwn\",', '  \"files\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json\",', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal\",', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"scores\": {', '    \"web\": 2,', '    \"pwn\": 4,', '    \"reverse\": 0,', '    \"crypto\": 0,', '    \"forensics\": 0,', '    \"misc\": 0', '  \"sources\": [', '    \"/home/kali/CyberAI/workspace/challenge/roulette/chal.c\"', '  \"filters\": [],', '  \"storage\": [],', '  \"sinks\": [],', '  \"bot\": [],', '  \"triggers\": [],', '  \"client\": [],', '  \"dom\": [],', '  \"navigation\": [],', '  \"data_flow\": [],', '  \"hypotheses\": [', '    {', '      \"name\": \"Controlled Address Write\",', '      \"confidence\": 90,', '      \"reason\": \"Source appears to permit a user-controlled memory write.\"', '    },']}], 'files_scanned': 3, 'challenge': '/home/kali/CyberAI/workspace/challenge/roulette'}}, 'agent.detector': {'status': 'EXECUTED', 'module': 'agent.detector', 'entrypoint': 'analyze', 'result': {'sources': [], 'sinks': [], 'bot': [], 'hypotheses': [], 'detector': {'findings': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}], 'categories': {'routes': [{'type': 'routes', 'file': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', 'line': 19, 'match': '\"/flag\"'}]}, 'dangerous_sinks': 0, 'user_inputs': 0, 'xss_indicators': 0, 'bot_indicators': 0, 'routes': 1, 'score': 0, 'hypotheses': []}}}, 'agent.hypothesis': {'status': 'EXECUTED', 'module': 'agent.hypothesis', 'entrypoint': 'analyze', 'result': {'sources': [], 'filters': [], 'storage': [], 'sinks': [], 'bot': [], 'client': [], 'dom': [], 'navigation': [], 'hypotheses': [], 'overall_score': 0}}, 'agent.pwn_engine': {'status': 'EXECUTED', 'module': 'agent.pwn_engine', 'entrypoint': 'analyze', 'result': {'engine': 'PwnEngine', 'version': '1.0', 'status': 'ANALYZED', 'files': ['/home/kali/CyberAI/workspace/challenge/roulette/chal', '/home/kali/CyberAI/workspace/challenge/roulette/chal.c', '/home/kali/CyberAI/workspace/challenge/roulette/.cyberai/context.json'], 'binaries': ['/home/kali/CyberAI/workspace/challenge/roulette/chal'], 'sources': ['/home/kali/CyberAI/workspace/challenge/roulette/chal.c'], 'protections': {}, 'symbols': [{'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000be0', 'type': 'T', 'name': 'win'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000c2c', 'type': 'T', 'name': 'game'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'address': '0000000000000e2c', 'type': 'T', 'name': 'main'}], 'strings': [{'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '/flag'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '> congrats! you won!!!'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '_flags'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': '_flags2'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': 'flag'}, {'binary': '/home/kali/CyberAI/workspace/challenge/roulette/chal', 'value': 'GNU C23 15.2.0 -mlittle-endian -mabi=lp64 -g -O0 -fno-omit-frame-pointer -fasynchronous-unwind-tables'}], 'primitives': [{'type': 'dangerous_function', 'name': 'scanf', 'count': 5, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'dangerous_function', 'name': 'printf', 'count': 5, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'byte_write', 'count': 1, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'pointer_write', 'count': 1, 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'controlled_address_write_candidate', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}], 'targets': [{'type': 'integer_condition', 'variable': 'balance', 'threshold': '999999999', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'win_function', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}, {'type': 'flag_file', 'path': '/flag', 'source': '/home/kali/CyberAI/workspace/challenge/roulette/chal.c'}], 'hypotheses': [{'name': 'Controlled Address Write', 'type': 'ARBITRARY_WRITE', 'confidence': 90, 'status': 'UNVALIDATED', 'reason': 'Source appears to permit a user-controlled memory write.'}, {'name': 'Reach Win Function', 'type': 'WIN_FUNCTION', 'confidence': 80, 'status': 'UNVALIDATED', 'reason': 'A dedicated victory function was detected.'}, {'name': 'Flag File', 'type': 'FLAG_FILE', 'confidence': 75, 'status': 'UNVALIDATED', 'reason': 'The program directly references /flag.'}], 'observations': ['checksec unavailable'], 'errors': []}}}, errors=[], metadata={'classification': {'category': 'pwn', 'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'raw': {'scores': {'web': 2, 'pwn': 4, 'reverse': 0, 'crypto': 0, 'forensics': 0, 'misc': 0}, 'ranking': [('pwn', 4), ('web', 2), ('reverse', 0), ('crypto', 0), ('forensics', 0), ('misc', 0)], 'primary': 'pwn'}}, 'selected_modules': ['agent.scanner', 'agent.detector', 'agent.hypothesis', 'agent.pwn_engine'], 'engine': 'CyberAI Global Solver', 'engine_version': 'V4', 'autonomous': True, 'validation_required': True, 'solver_history': [{'event': 'SOLVER_START', 'timestamp': 1789627973.6719315, 'data': {'category': 'pwn', 'files': 3}}, {'event': 'ROUND_START', 'timestamp': 1789627973.6719432, 'data': {'round': 1}}, {'event': 'PRIORITIZATION', 'timestamp': 1789627973.6720183, 'data': {'count': 6}}, {'event': 'ROUND_END', 'timestamp': 1789627973.6720202, 'data': {'round': 1, 'flags': 0, 'experiments': 0}}, {'event': 'SOLVER_END', 'timestamp': 1789627973.6720214, 'data': {'status': 'IN_PROGRESS'}}], 'prioritized_hypotheses': [{'name': 'Controlled Address Write', 'confidence': 90, 'reason': 'Source appears to permit a user-controlled memory write.', 'solver_score': 92.0}, {'name': 'Reach Win Function', 'confidence': 80, 'reason': 'A dedicated victory function was detected.', 'solver_score': 80.0}, {'name': 'Flag File', 'confidence': 75, 'reason': 'The program directly references /flag.', 'solver_score': 75.0}, {'name': 'Binary Vulnerability Analysis', 'confidence': 50, 'reason': \"Analyse générique du binaire et des primitives d'exploitation.\", 'solver_score': 50.0}, {'name': 'Memory Corruption', 'confidence': 40, 'reason': 'Recherche de corruption mémoire.', 'solver_score': 40.0}, {'name': 'Input Boundary Analysis', 'confidence': 35, 'reason': 'Recherche des limites de lecture/écriture.', 'solver_score': 35.0}], 'solver_status': 'IN_PROGRESS', 'global_solver': {'result': ...}, 'solver_result': ...})"
   }
 }
